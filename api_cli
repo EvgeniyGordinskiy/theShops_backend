@@ -1,0 +1,47 @@
+#!/usr/bin/env php
+<?php
+
+ use \App\Services\Console\Commands\Commands;
+
+/*
+|--------------------------------------------------------------------------
+| Register The Auto Loader
+|--------------------------------------------------------------------------
+|
+| Composer provides a convenient, automatically generated class loader
+| for our application. We just need to utilize it! We'll require it
+| into the script here so that we do not have to worry about the
+| loading of any our classes "manually". Feels great to relax.
+|
+*/
+require __DIR__.'/init.php';
+
+$command = new Commands();
+$keyWord = '';
+
+$allCommands = [
+	'migrate',
+	'seed'
+];
+foreach ($argv as $i=>$arg )
+{
+	if($keyWord) {
+		if(substr($arg,0,2) === '--') {
+			$value = explode('=', $arg)[1] ?? '';
+			$command->{$keyWord}($value);
+		} else {
+			$command->$keyWord();
+		}
+	}
+
+	if (in_array($arg,$allCommands)) {
+		$keyWord = $arg;
+		if($i + 1 === count($argv)) {
+			$command->$keyWord();
+		}
+	}
+
+
+}
+
+
