@@ -32,13 +32,13 @@ class ScheduleHistoryModel extends Model
 
     public static function get_open_shops_by_the_date($day = '', $time = '', $limit = 0, $page = 0)
     {
-        $date = $day ? new Carbon($day) : new Carbon();
+        $date = $day ? new Carbon($day) : Carbon::now()->addDay();
         $weekDay = config('app','days_of_week')[$date->dayOfWeek];
         $column = $weekDay.ScheduleModel::SUFFIX_START;
 
         $historyScheduleSql ="select shop_id, max(id) as id
 							from scheduleHistory
-							where created_at < '{$date->toDateString()}'
+							where created_at <= '{$date->toDateString()}'
 							group by shop_id
 							";
 
@@ -49,23 +49,16 @@ class ScheduleHistoryModel extends Model
 
         $ids = implode(',', array_column($historySchedule, 'id'));
 
-        $resSql = "select id, shop_id, $start_days, $end_days
-						from scheduleHistory
-						where id in ($ids)
+        if(!$ids) return [];
+
+        $resSql = "select h.id, count(*) as count, shop_id, sh.name, sh.description, sh.short_description, $start_days, $end_days
+						from scheduleHistory as h
+						join shops as sh on h.shop_id = sh.id
 						";
+
+        if($ids) $resSql .= " where h.id in ($ids)";
+
         if($time) {
-            foreach (explode(',',$start_days) as $key => $sDay) {
-                if($key === 0) {
-                    $resSql .= " AND( $sDay <= '$time' ";
-
-                } else if($key + 1 === count(explode(',',$start_days))){
-                    $resSql .= " or $sDay <= '$time' )";
-
-                } else {
-                    $resSql .= " or $sDay <= '$time' ";
-                }
-            }
-
             foreach (explode(',',$end_days) as $key => $eDay) {
                 if($key === 0) {
                     $resSql .= " AND( $eDay >= '$time' ";
@@ -79,14 +72,24 @@ class ScheduleHistoryModel extends Model
             }
         }
 
-        if($day) $resSql .= " AND $column is not NULL ";
+        if($day) $resSql .= " AND $column is not NULL";
 
-        if($limit) $resSql .= " limit $limit ";
+        $resSql .= ' group by h.id order by sh.name';
 
-        if($page) {
-            $offs = ($page - 1)*$limit;
-            $resSql .= " offset $offs";
+        if($limit) {
+            if($page) {
+                $totalCount = DB::select($resSql)[0]['count'];
+                $lastPage = round($totalCount / $limit);
+                $currentPage = $page;
+                self::setPagination($currentPage, $lastPage, $limit, $totalCount);
+                $resSql .= " limit $limit ";
+                $offs = ($page - 1)*$limit;
+                $resSql .= " offset $offs";
+            } else {
+                $resSql .= " limit $limit ";
+            }
         }
+
 
         return DB::select($resSql);
     }

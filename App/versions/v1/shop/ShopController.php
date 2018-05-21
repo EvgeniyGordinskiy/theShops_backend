@@ -75,6 +75,7 @@ class ShopController extends BaseController
 			$newSchedule[$day]['end'] = ${$day.ScheduleModel::SUFFIX_END};
 			$newSchedule[$day]['id'] = $dayId;
 		}
+		var_dump($newSchedule);
 		$updatedShop             = ShopModel::update($id, $name, $description, $short_description);
 
 		$updatedShop['schedule'] = ScheduleModel::update(intval($id), $newSchedule);

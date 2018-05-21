@@ -9,6 +9,8 @@ use App\Services\Route\Routes_filter\Filter;
 class Hal implements Hypermedia
 {
     public $links = [];
+    public static $pagination = [];
+
     public function create($class)
     {
         $routes = Route::$all_routes;

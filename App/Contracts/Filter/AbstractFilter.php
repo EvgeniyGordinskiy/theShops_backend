@@ -2,9 +2,12 @@
 namespace App\Contracts\Filter;
 
 use App\Services\DB\DB;
+use App\Traits\ResponseTrait;
 
 abstract class AbstractFilter implements IFilter
 {
+    use ResponseTrait;
+    
     public function isString($value, $length = 0)
     {
         if($length) {
@@ -27,7 +30,6 @@ abstract class AbstractFilter implements IFilter
                 intval($partialsStart[1]) >=  intval($partialsSEnd[1])) {
                 return false;
             }
-
             return $this->parseTime($startTime) && $this->parseTime($endTime);
         }
         return false;
@@ -40,6 +42,6 @@ abstract class AbstractFilter implements IFilter
 
     private function parseTime($time)
     {
-        return preg_match("/^(?:2[0-4]|[01][1-9]|10):([0-5][0-9])$/", $time);
+        return preg_match("/^(?:2[0-4]|[01][1-9]|10):([0-5][0-9]):?([0-5][0-9])?$/", $time);
     }
 }

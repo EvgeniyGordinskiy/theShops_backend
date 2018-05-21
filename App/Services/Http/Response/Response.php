@@ -6,6 +6,13 @@ class Response
 	// \Zend\Diactoros\Response instance
 	public $server;
 
+	protected $headers = [
+	'Access-Control-Allow-Origin'      => 'http://localhost:8080',
+	'Access-Control-Allow-Methods'     => 'GET, POST, PATCH, PUT, DELETE, OPTIONS',
+	'Access-Control-Allow-Headers'     => 'Content-Type, Accept, Authorization, X-Requested-With, Application',
+	'Access-Control-Allow-Credentials' => 'true',
+	];
+
 	/**
 	 * Response constructor.
 	 */
@@ -19,7 +26,7 @@ class Response
 	 */
 	protected function _createResponse()
 	{
-		$this->server = new \Zend\Diactoros\Response();
+		$this->server = new \Zend\Diactoros\Response($body = 'php://memory', $status = 200, $this->headers);
 	}
 
 	/**
@@ -48,8 +55,8 @@ class Response
 		$status = $this->server->getStatusCode();
 		http_response_code($status);
 		if ( $headers = $this->server->getHeaders() ) {
-			foreach ($headers as $header) {
-				header($header);
+			foreach ($headers as $key => $value) {
+				header("$key:$value[0]");
 			}
 		}
 		

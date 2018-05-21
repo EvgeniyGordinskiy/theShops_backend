@@ -65,7 +65,9 @@ class Request
 	public static function getValues()
 	{
 		if(self::isPost() || self::isPut()) {
-			parse_str(file_get_contents("php://input"), $input);
+//			parse_str(file_get_contents("php://input"), $input);
+			$input = (array) json_decode(file_get_contents("php://input"));
+
 			if ($input) {
 				return $input;
 			}
